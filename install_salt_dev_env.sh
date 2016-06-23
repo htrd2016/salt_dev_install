@@ -28,18 +28,19 @@ sudo yum install python-devel
 sudo yum install python-virtualenv.noarch
 
 install_path=/home/$(whoami)/salt_dev_env
+mkdir -p $install_path
 virtualenv $install_path
 
 source $install_path/bin/activate
 
-echo $(pwd)
+codepath=`pwd`
 
 sudo yum install openssl-devel
 sudo yum install swig
 pip install cherrypy
 pip install M2Crypto    # Don't install on Debian/Ubuntu (see below)
 pip install pyzmq PyYAML pycrypto msgpack-python jinja2 psutil futures tornado
-pip install -e ./salt   # the path to the salt git clone from above
+pip install -e $(codepath)   # the path to the salt git clone from above
 
 #***************bin/salt-master 注释前3行
 
