@@ -40,7 +40,7 @@ sudo yum install swig
 pip install cherrypy
 pip install M2Crypto    # Don't install on Debian/Ubuntu (see below)
 pip install pyzmq PyYAML pycrypto msgpack-python jinja2 psutil futures tornado
-pip install -e $(codepath)   # the path to the salt git clone from above
+pip install -e $codepath/salt   # the path to the salt git clone from above
 
 #***************bin/salt-master 注释前3行
 
@@ -53,11 +53,11 @@ echo -e "external_auth:\n  pam:\n    $(whoami):\n      - .*\n      - '@wheel'\n 
 echo -e "reactor:\n  - 'salt/netapi/hook/mycompany/build/*':\n    - $install_path/srv/reactor/react_ci_builds.sls"  > $install_path/etc/salt/master.d/reactor.conf
 echo -e "install nano on my minion:\n  local.pkg.install:\n    - tgt: '*'\n    - arg:\n      - nano"  > $install_path/srv/reactor/react_ci_builds.sls
 echo -e "rest_cherrypy:\n  port: 8000\n  disable_ssl: True" > $install_path/etc/salt/master.d/api.conf
-cp ./salt/conf/master ./salt/conf/minion $install_path/etc/salt/
+cp $codepath/salt/conf/master $codepath/salt/conf/minion $install_path/etc/salt/
 
 #cd $install_path
 
-cp ./salt/conf/master ./salt/conf/minion $install_path/etc/salt/
+cp $codepath/salt/conf/master $codepath/salt/conf/minion $install_path/etc/salt/
 
 sed -i "1iuser: $(whoami)" $install_path/etc/salt/master
 sed -i "2ipublish_port: 12345" $install_path/etc/salt/master
