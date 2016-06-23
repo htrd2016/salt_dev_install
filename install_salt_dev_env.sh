@@ -6,7 +6,7 @@ git clone https://github.com/htrd2016/salt.git
 cd salt
 
 #将原作者项目更新的内容同步到我的本地项目
-git remote add upstream https://github.com/saltstack/salt.git
+git remote add upstream https://github.com/htrd2016/salt.git
 
 git fetch upstream
 
@@ -78,6 +78,6 @@ sleep 2
 #salt-key -c $install_path/etc/salt -A
 sleep 2
 salt-api -c $install_path/etc/salt -d
-
+sleep 2
 salt -c $install_path/etc/salt '*' test.ping
 
