@@ -19,9 +19,7 @@
 
 13.hook_mycompany_build.sh:触发事件“hook/mycompany/build/success”
 
-14.触发“hook/web/event/run/event1”事件使用:
-curl -sS localhost:8000/hook/web/event/run/event1 -H "X-Auth-Token:eccf25d3a7fe558a88a212da7f4c532f760bb15d" -d time='10' -d tgt='saltdev' -d sls='do_thing_on_minion'
-event1会触发event2
+14.fire_event1.sh:触发“hook/web/event/run/event1”,X-Auth-Token:<your log in token>, event1会触发event2
 登录获取token:
 curl -si localhost:8000/login \
         -H "Accept: application/json" \
