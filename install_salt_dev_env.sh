@@ -51,14 +51,20 @@ mkdir -p $install_path/srv
 mkdir -p $install_path/srv/reactor
 
 echo -e "external_auth:\n  pam:\n    $(whoami):\n      - .*\n      - '@wheel'\n      - '@runner'" > $install_path/etc/salt/master.d/auth.conf
-echo -e "reactor:\n  - 'salt/netapi/hook/mycompany/build/*':\n    - $install_path/srv/reactor/react_ci_builds.sls"  > $install_path/etc/salt/master.d/reactor.conf
+
+echo -e "reactor:\n  - 'salt/netapi/hook/mycompany/build/*':\n    - $install_path/srv/reactor/react_ci_builds.sls\n  - 'salt/netapi/hook/web/event/run/event1':\n    - $install_path/srv/reactor/web_run_event1.sls\n  - 'salt/netapi/hook/web/event/run/event2':\n    - $install_path/srv/reactor/web_run_event2.sls\n"  > $install_path/etc/salt/master.d/reactor.conf
+
 echo -e "install nano on my minion:\n  local.pkg.install:\n    - tgt: '*'\n    - arg:\n      - nano"  > $install_path/srv/reactor/react_ci_builds.sls
 echo -e "rest_cherrypy:\n  port: 8000\n  disable_ssl: True" > $install_path/etc/salt/master.d/api.conf
+
+
 cp $codepath/salt/conf/master $codepath/salt/conf/minion $install_path/etc/salt/
 
 #cd $install_path
 
 cp $codepath/salt/conf/master $codepath/salt/conf/minion $install_path/etc/salt/
+
+cp -r $codepath/mywork/srv/* $install_path/srv/
 
 sed -i "1iuser: $(whoami)" $install_path/etc/salt/master
 sed -i "2ipublish_port: 12345" $install_path/etc/salt/master
