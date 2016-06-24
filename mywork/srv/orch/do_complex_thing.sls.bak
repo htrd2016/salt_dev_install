@@ -1,0 +1,22 @@
+# /srv/salt/orch/do_complex_thing.sls
+{% set tag = salt.pillar.get('event_tag') %}
+{% set data = salt.pillar.get('event_data') %}
+
+# Pass data from the event to a custom runner function.
+# The function expects a 'foo' argument.
+do_first_thing:
+  salt.runner:
+    - name: custom_runner.custom_function
+    - foo: {{ data.foo }}
+
+# Wait for the runner to finish then send an execution to minions.
+# Forward some data from the event down to the minion's state run.
+do_second_thing:
+  salt.state:
+    - tgt: {{ data.bar }}
+    - sls:
+      - do_thing_on_minion
+    - pillar:
+        baz: {{ data.baz }}
+    - require:
+      - salt: do_first_thing
