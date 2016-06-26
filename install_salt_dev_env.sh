@@ -73,7 +73,7 @@ sed -i "4iroot_dir: $install_path/srv" $install_path/etc/salt/master
 sed -i "5iauto_accept: True" $install_path/etc/salt/master
 sed -i "6isock_dir: $install_path/var/run/salt/master" $install_path/etc/salt/master
 sed -i "7ifile_roots:\n  base:\n    - $install_path/srv" $install_path/etc/salt/master
-sed -i "8ipki_dir: $install_path/etc/salt/pki/master" $install_path/etc/salt/master
+sed -i "9ipki_dir: $install_path/etc/salt/pki/master" $install_path/etc/salt/master
 
 sed -i "1iuser: $(whoami)" $install_path/etc/salt/minion
 sed -i "2imaster: localhost" $install_path/etc/salt/minion
@@ -81,7 +81,7 @@ sed -i "3iid: saltdev" $install_path/etc/salt/minion
 sed -i "4imaster_port: 12346" $install_path/etc/salt/minion
 sed -i "5iroot_dir: $install_path/srv" $install_path/etc/salt/minion
 sed -i "6ifile_roots:\n  base:\n    - $install_path/srv" $install_path/etc/salt/minion
-sed -i "7ipki_dir: $install_path/etc/salt/pki/minion" $install_path/etc/salt/minion
+sed -i "9ipki_dir: $install_path/etc/salt/pki/minion" $install_path/etc/salt/minion
 
 salt-master -c $install_path/etc/salt -d
 salt-minion -c $install_path/etc/salt -d
