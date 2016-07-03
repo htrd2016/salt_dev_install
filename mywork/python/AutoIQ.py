@@ -109,7 +109,7 @@ def start_minion_process(local, sevent, minion_name, process_folder, exe_name):
   cmd = 'START /normal /D "' + process_folder + '" ' + exe_name
   ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', cmd)
   if(ret_code != 0):
-    print 'error:kill process '+ process_name + ' failed,code-'+str(ret_code) + ',data-' + ret_data
+    print 'error:kill process '+ process_folder + ' failed,code-'+str(ret_code) + ',data-' + ret_data
     return -1
   return 0
   
@@ -166,6 +166,7 @@ def main_exec(salt_path, config_file, minion_name):
         return -1
       else:
         local.cmd(minion_name, 'system.reboot', expr_form='list')
+        return 0
   else:
     print 'get hostname error: code-'+str(ret_code) + ',data-' + ret_data
     return -1
@@ -174,12 +175,12 @@ def main_exec(salt_path, config_file, minion_name):
   kill_minion_process(local, sevent, minion_name, 'client.exe')
   
   #clean files
-  clean_files(local, sevent, minion_name, 'del /S C:\\test\*.reg')
+  clean_files(local, sevent, minion_name, 'del /S C:/test/*.reg')
   
   #client config file
-  write_client_config_file(local, sevent, minion_name, 'c:\\test.txt', ['server=127.0.0.1', 'port=100'])
+  write_client_config_file(local, sevent, minion_name, 'C:/test.txt', ['server=127.0.0.1', 'port=100'])
   
-  start_minion_process(local, sevent, minion_name, 'C://test/', 'test.bat');
+  start_minion_process(local, sevent, minion_name, 'C:/test/', 'test.bat');
   return 0
 
 if __name__=="__main__": 
