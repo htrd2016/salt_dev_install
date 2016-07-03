@@ -10,7 +10,7 @@ import time
 '''
 read ini file
 '''
-def ConfigSectionMap(Config, section):
+def configSectionMap(Config, section):
     dict1 = {}
     options = Config.options(section)
     for option in options:
@@ -81,7 +81,7 @@ def set_minion_ip(local, sevent, minion_name, ip):
   ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', param)
   return (ret_code, ret_data)
   
-def write_client_config_file(local, sevent, minion_name, file_name, line_list):
+def minion_write_client_config_file(local, sevent, minion_name, file_name, line_list):
   cmd = ""
   for line in line_list:
     if(cmd != ""):
@@ -96,16 +96,35 @@ def write_client_config_file(local, sevent, minion_name, file_name, line_list):
     print 'error:write config '+ file_name + ' failed,code-'+str(ret_code) + ',data-' + ret_data
     return -1
   return 0
-  
-def kill_minion_process(local, sevent, minion_name, process_name):
+
+def minion_process_exist(local, sevent, minion_name, exe_name):
+  cmd = 'tasklist|find /i "'+ exe_name +'"'
+  ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', cmd)
+  if(ret_code != 0):
+    print 'error:kill process '+ process_folder + ' failed,code-'+str(ret_code) + ',data-' + ret_data
+    return -1
+  else:
+    if(ret_data == ''):
+      return 0
+    else:
+     return 1
+   
+def minion_kill_process(local, sevent, minion_name, process_name):
+  if (0 == minion_process_exist(local, sevent, minion_name, process_name)):
+      return 0
   cmd = 'taskkill /f /im '+ process_name
   ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', cmd)
   if(ret_code != 0):
     print 'error:kill process '+ process_name + ' failed,code-'+str(ret_code) + ',data-' + ret_data
     return -1
-  return 0
+  else:
+    if (0 == minion_process_exist(local, sevent, minion_name, process_name)):
+      return 0
+    else:
+      print 'error:kill process '+ process_name + 'failed!!'
+  return -1
   
-def start_minion_process(local, sevent, minion_name, process_folder, exe_name):
+def minion_start_process(local, sevent, minion_name, process_folder, exe_name):
   cmd = 'START /normal /D "' + process_folder + '" ' + exe_name
   ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', cmd)
   if(ret_code != 0):
@@ -113,7 +132,7 @@ def start_minion_process(local, sevent, minion_name, process_folder, exe_name):
     return -1
   return 0
   
-def clean_files(local, sevent, minion_name, rm_cmd):
+def minion_clean_files(local, sevent, minion_name, rm_cmd):
   ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', rm_cmd)
   if(ret_code != 0):
     print 'clean files '+ process_name + ' failed,code-'+str(ret_code) + ',data-' + ret_data
@@ -133,14 +152,17 @@ def main_exec(salt_path, config_file, minion_name):
   ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', 'GETMAC /s localhost')
   if(ret_code == 0):
     mac = get_middle_str(ret_data, '{', '}')
+    if(mac == ''):
+      print 'parse mac error: code-'+str(ret_code) + ',data-' + ret_data
+      return -1
   else:
     print 'get mac error: code-'+str(ret_code) + ',data-' + ret_data
-    return -1;
+    return -1
   
   config = ConfigParser.ConfigParser()
   config.read(config_file) 
   
-  ip_from_ini = ConfigSectionMap(config, mac)['ip']#read ip from ini file
+  ip_from_ini = configSectionMap(config, mac)['ip']#read ip from ini file
   #get ip
   ret_code, ret_data = send_cmd_no_param(local, sevent, minion_name, 'network.ip_addrs')
   if(ret_code == 0):
@@ -151,10 +173,10 @@ def main_exec(salt_path, config_file, minion_name):
         return -1
   else:
     print 'get ip error: code-'+str(ret_code) + ',data-' + ret_data
-    return -1;
+    return -1
     
   #hostname
-  hostname_from_ini = ConfigSectionMap(config, mac)['hostname']
+  hostname_from_ini = configSectionMap(config, mac)['hostname']
   ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', 'hostname')
   if(ret_code == 0):
     if(ret_data != hostname_from_ini):
@@ -172,15 +194,16 @@ def main_exec(salt_path, config_file, minion_name):
     return -1
     
   #kill process
-  kill_minion_process(local, sevent, minion_name, 'client.exe')
+  if (0 != minion_kill_process(local, sevent, minion_name, 'client.exe')):
+    return -1
   
   #clean files
-  clean_files(local, sevent, minion_name, 'del /S C:/test/*.reg')
+  minion_clean_files(local, sevent, minion_name, 'del /S C:/test/*.reg')
   
   #client config file
-  write_client_config_file(local, sevent, minion_name, 'C:/test.txt', ['server=127.0.0.1', 'port=100'])
+  minion_write_client_config_file(local, sevent, minion_name, 'C:/test.txt', ['server=127.0.0.1', 'port=100'])
   
-  start_minion_process(local, sevent, minion_name, 'C:\\test\\', 'test.bat');
+  minion_start_process(local, sevent, minion_name, 'C:\\test\\', 'test.bat');
   return 0
 
 if __name__=="__main__": 
