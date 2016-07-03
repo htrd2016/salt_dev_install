@@ -180,7 +180,7 @@ def main_exec(salt_path, config_file, minion_name):
   #client config file
   write_client_config_file(local, sevent, minion_name, 'C:/test.txt', ['server=127.0.0.1', 'port=100'])
   
-  start_minion_process(local, sevent, minion_name, 'C:/test/', 'test.bat');
+  start_minion_process(local, sevent, minion_name, 'C:\\test\\', 'test.bat');
   return 0
 
 if __name__=="__main__": 
