@@ -151,7 +151,11 @@ def main_exec(salt_path, config_file, minion_name):
   #get mac of minion
   ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', 'GETMAC /s localhost')
   if(ret_code == 0):
-    mac = get_middle_str(ret_data, '{', '}')
+    list_data = ret_data.split('\r\n')
+    mac = list_data[len(list_data)-1]
+    mac = mac[0:17]
+    mac = mac.replace('-', '')
+    print mac
     if(mac == ''):
       print 'parse mac error: code-'+str(ret_code) + ',data-' + ret_data
       return -1
