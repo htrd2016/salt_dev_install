@@ -76,15 +76,22 @@ def send_cmd_no_param(local, sevent, minion_name, cmd):
 '''
 set minion ip
 '''      
-def set_minion_ip(local, sevent, minion_name, ip, mask, gateway):
+def set_minion_ip(local, sevent, minion_name, ip, mask, gateway, name='Local'):
   if(gateway.strip()==''):
     gateway = 'none'
   else:
     gateway = 'gateway='+gateway+' gwmetric=1'
-  param = 'netsh interface ip set address name="Local" source=static addr='+ ip +' mask='+mask+' ' + gateway
+  param = 'netsh interface ip set address name="'+name+'" source=static addr='+ ip +' mask='+mask+' ' + gateway
   ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', param)
   return (ret_code, ret_data)
   
+def set_minion_dns(local, sevent, minion_name, dns, name='Local'):
+  if(dns.strip()==''):
+    dns = 'none'
+  param = 'netsh interface IP set dns "'+name+'" static ' + dns
+  ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', param)
+  return (ret_code, ret_data)
+
 def minion_write_client_config_file(local, sevent, minion_name, file_name, line_list):
   cmd = ""
   for line in line_list:
@@ -183,6 +190,13 @@ def main_exec(salt_path, config_file, minion_name):
         return -1
   else:
     print 'get ip error: code-'+str(ret_code) + ',data-' + ret_data
+    return -1
+    
+  #dns
+  dns_from_ini = configSectionMap(config, mac)['dns']
+  ret_code, ret_data = set_minion_dns(local, sevent, minion_name, dns_from_ini)
+  if (ret_code != 0):
+    print 'set ip error: code-'+str(ret_code) + ',data-' + ret_data
     return -1
     
   #hostname
