@@ -76,8 +76,12 @@ def send_cmd_no_param(local, sevent, minion_name, cmd):
 '''
 set minion ip
 '''      
-def set_minion_ip(local, sevent, minion_name, ip):
-  param = 'netsh interface ip set address name="Local" source=static addr='+ ip +' mask=255.255.255.0 none'
+def set_minion_ip(local, sevent, minion_name, ip, mask, gateway):
+  if(gateway.strip()==''):
+    gateway = 'none'
+  else:
+    gateway = 'gateway='+gateway+' gwmetric=1'
+  param = 'netsh interface ip set address name="Local" source=static addr='+ ip +' mask='+mask+' ' + gateway
   ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', param)
   return (ret_code, ret_data)
   
@@ -166,12 +170,14 @@ def main_exec(salt_path, config_file, minion_name):
   config = ConfigParser.ConfigParser()
   config.read(config_file) 
   
-  ip_from_ini = configSectionMap(config, mac)['ip']#read ip from ini file
+  ip_from_ini = configSectionMap(config, mac)['ip']
+  mask_from_ini = configSectionMap(config, mac)['mask']
+  gateway_from_ini = configSectionMap(config, mac)['gateway']
   #get ip
   ret_code, ret_data = send_cmd_no_param(local, sevent, minion_name, 'network.ip_addrs')
   if(ret_code == 0):
     if(ip_from_ini not in ret_data):
-      ret_code, ret_data = set_minion_ip(local, sevent, minion_name, ip_from_ini)
+      ret_code, ret_data = set_minion_ip(local, sevent, minion_name, ip_from_ini, mask_from_ini, gateway_from_ini)
       if (ret_code != 0):
         print 'set ip error: code-'+str(ret_code) + ',data-' + ret_data
         return -1
@@ -209,7 +215,7 @@ def main_exec(salt_path, config_file, minion_name):
   hongt_app_path = 'C:\\hongt\\'
   server_ip = configSectionMap(config, 'Main')['host']
   server_port = configSectionMap(config, 'Main')['port']
-  to_run_app_count = configSectionMap(config, 'Main')['to_run_app_count']
+  to_run_app_count = configSectionMap(config, mac)['to_run_app_count']
   
   #clean files
   minion_windows_cmd(local, sevent, minion_name, 'del /S C:/test/client.run')
