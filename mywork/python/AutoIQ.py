@@ -132,8 +132,8 @@ def minion_start_process(local, sevent, minion_name, process_folder, exe_name):
     return -1
   return 0
   
-def minion_clean_files(local, sevent, minion_name, rm_cmd):
-  ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', rm_cmd)
+def minion_windows_cmd(local, sevent, minion_name, cmd):
+  ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', cmd)
   if(ret_code != 0):
     print 'clean files '+ process_name + ' failed,code-'+str(ret_code) + ',data-' + ret_data
     return -1
@@ -193,17 +193,51 @@ def main_exec(salt_path, config_file, minion_name):
     print 'get hostname error: code-'+str(ret_code) + ',data-' + ret_data
     return -1
     
-  #kill process
-  if (0 != minion_kill_process(local, sevent, minion_name, 'client.exe')):
+  if (0 != minion_kill_process(local, sevent, minion_name, 'Guardian.exe')):
+    print 'kill Guardian.exe faild!!!'
     return -1
+    
+  #kill process
+  if (0 != minion_kill_process(local, sevent, minion_name, 'Client.exe')):
+    print 'kill Client.exe faild!!!'
+    return -1
+   
+  hongt_app_path = 'C:\\hongt\\'
+  server_ip = configSectionMap(config, 'Main')['host']
+  server_port = configSectionMap(config, 'Main')['port']
+  to_run_app_count = configSectionMap(config, 'Main')['to_run_app_count']
   
   #clean files
-  minion_clean_files(local, sevent, minion_name, 'del /S C:/test/*.reg')
+  minion_windows_cmd(local, sevent, minion_name, 'del /S C:/test/client.run')
+  minion_windows_cmd(local, sevent, minion_name, 'del /S C:/test/*.reg')
   
-  #client config file
-  minion_write_client_config_file(local, sevent, minion_name, 'C:/test.txt', ['server=127.0.0.1', 'port=100'])
+  #write client config file
+  minion_client_config = ['[Home]', 'AutoRun=1', '[Main]', 'Host='+server_ip, 'Port='+server_port, 'Bind='+ip_from_ini,
+  '[Login]', 'Enable=0', 'Manually=0', 'DomainName=', 'UserName=', 'Lock=0', '[File]', 'BackUp=0',
+  'Tactics=0', 'FilePath=', 'FileSize=', 'FileExt=', 'FilePathEx']
+  minion_write_client_config_file(local, sevent, minion_name, hongt_app_path+'WebConfig.ini', minion_client_config)
   
-  minion_start_process(local, sevent, minion_name, 'C:\\test\\', 'test.bat');
+  client_folders = ['Client01', 'Client02', 'Client03', 'Client04', 'Client05', 'Client06', 'Client07', 'Client08', 'Client09', 'Client10']
+  count = 0
+  for folder in client_folders:
+    client_folder = hongt_app_path + folder
+    # del /f /s /q 
+    del_client_file_cmd = 'del /f /s /q ' + client_folder
+    #remove folder
+    minion_windows_cmd(local, sevent, minion_name, del_client_file_cmd)
+    #create dir
+    minion_windows_cmd(local, sevent, minion_name, 'md '+ hongt_app_path + folder)
+    #copy config file
+    minion_windows_cmd(local, sevent, minion_name, 'copy /y ' + hongt_app_path + 'WebConfig.ini ' + client_folder + '\\WebConfig.ini')
+    #copy client.exe
+    minion_windows_cmd(local, sevent, minion_name, 'copy /y ' + hongt_app_path + 'Client.exe ' + client_folder + '\\Client.exe')
+    #start process
+    minion_start_process(local, sevent, minion_name, client_folder, 'Client.exe')
+    count+=1
+    print count
+    print to_run_app_count
+    if(count>=int(to_run_app_count)):
+      break;
   return 0
 
 if __name__=="__main__": 
