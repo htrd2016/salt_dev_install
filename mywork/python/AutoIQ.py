@@ -180,7 +180,9 @@ def main_exec(salt_path, config_file, minion_name):
   ip_from_ini = configSectionMap(config, mac)['ip']
   mask_from_ini = configSectionMap(config, mac)['mask']
   gateway_from_ini = configSectionMap(config, mac)['gateway']
-  #get ip
+  
+  #set ip
+  '''
   ret_code, ret_data = send_cmd_no_param(local, sevent, minion_name, 'network.ip_addrs')
   if(ret_code == 0):
     if(ip_from_ini not in ret_data):
@@ -190,6 +192,13 @@ def main_exec(salt_path, config_file, minion_name):
         return -1
   else:
     print 'get ip error: code-'+str(ret_code) + ',data-' + ret_data
+    return -1
+  '''
+  
+  #set minion ip
+  ret_code, ret_data = set_minion_ip(local, sevent, minion_name, ip_from_ini, mask_from_ini, gateway_from_ini)
+  if (ret_code != 0):
+    print 'set ip error: code-'+str(ret_code) + ',data-' + ret_data
     return -1
     
   #dns
@@ -268,6 +277,11 @@ if __name__=="__main__":
   count = 0
   if(len(sys.argv)>=2):
     minion_name = str(sys.argv[1])
+
+    if(len(minion_name)>6 and minion_name[0:6] == 'minion'):
+      print minion_name + ' to abord!!'
+      sys.exit()
+    
     while True:
       if(0 == main_exec('/home/test6/salt_dev_env/', '/home/test6/config.ini', minion_name)):
         break
