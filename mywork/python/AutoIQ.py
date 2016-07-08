@@ -53,7 +53,7 @@ def send_cmd(local, sevent, minion_name, cmd, param, has_param=True):
     if ret is None:
        print "ret none"
        wait_time+=1
-       if (wait_time > 10):
+       if (wait_time > 10000):
          return ("", "")
        else:
          continue
@@ -213,7 +213,7 @@ def main_exec(salt_path, config_file, minion_name):
   ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', 'hostname')
   if(ret_code == 0):
     if(ret_data != hostname_from_ini):
-      hostname_cmd = 'wmic computersystem where name="'+ret_data+'" call rename name="'+hostname_from_ini+'"'
+      hostname_cmd = 'wmic computersystem where name="%COMPUTERNAME%" call rename name="'+hostname_from_ini+'"'
       print hostname_cmd
       ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', hostname_cmd)
       if(ret_code != 0):
@@ -236,13 +236,17 @@ def main_exec(salt_path, config_file, minion_name):
     return -1
    
   hongt_app_path = 'C:\\hongt\\'
-  server_ip = configSectionMap(config, 'Main')['host']
-  server_port = configSectionMap(config, 'Main')['port']
+  if(minion_name[0:3] == 'old'):
+    new_old = 'MainOld'
+  else:
+    new_old = 'MainNew'
+  server_ip = configSectionMap(config, new_old)['host']
+  server_port = configSectionMap(config, new_old)['port']
   to_run_app_count = configSectionMap(config, mac)['to_run_app_count']
   
   #clean files
-  minion_windows_cmd(local, sevent, minion_name, 'del /S C:/test/client.run')
-  minion_windows_cmd(local, sevent, minion_name, 'del /S C:/test/*.reg')
+  #minion_windows_cmd(local, sevent, minion_name, 'del /S C:/test/client.run')
+  #minion_windows_cmd(local, sevent, minion_name, 'del /S C:/test/*.reg')
   
   #write client config file
   minion_client_config = ['[Home]', 'AutoRun=1', '[Main]', 'Host='+server_ip, 'Port='+server_port, 'Bind='+ip_from_ini,
@@ -254,16 +258,13 @@ def main_exec(salt_path, config_file, minion_name):
   count = 0
   for folder in client_folders:
     client_folder = hongt_app_path + folder
-    # del /f /s /q 
-    del_client_file_cmd = 'del /f /s /q ' + client_folder
-    #remove folder
-    minion_windows_cmd(local, sevent, minion_name, del_client_file_cmd)
-    #create dir
-    minion_windows_cmd(local, sevent, minion_name, 'md '+ hongt_app_path + folder)
+    del_client_run_file_cmd = 'del /f /s /q ' + client_folder + '\\Client.run'
+    minion_windows_cmd(local, sevent, minion_name, del_client_run_file_cmd)
+    
     #copy config file
     minion_windows_cmd(local, sevent, minion_name, 'copy /y ' + hongt_app_path + 'WebConfig.ini ' + client_folder + '\\WebConfig.ini')
-    #copy client.exe
-    minion_windows_cmd(local, sevent, minion_name, 'copy /y ' + hongt_app_path + 'Client.exe ' + client_folder + '\\Client.exe')
+    
+    time.sleep(1)
     #start process
     minion_start_process(local, sevent, minion_name, client_folder, 'Client.exe')
     count+=1
@@ -283,7 +284,7 @@ if __name__=="__main__":
       sys.exit()
     
     while True:
-      if(0 == main_exec('/home/test6/salt_dev_env/', '/home/test6/config.ini', minion_name)):
+      if(0 == main_exec('', '/srv/salt/base/python/config.ini', minion_name)):
         break
       count += 1
       if(count>3):
