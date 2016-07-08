@@ -22,7 +22,7 @@ def configSectionMap(Config, section):
             print("exception on %s!" % option)
             dict1[option] = None
     return dict1
-    
+
 '''
 get sub string start with start_str,end with end_str of content
 '''
@@ -44,7 +44,7 @@ def send_cmd(local, sevent, minion_name, cmd, param, has_param=True):
     mjid = local.cmd_async(minion_name, cmd)
   else:
     mjid = local.cmd_async(minion_name, cmd, [param])
-    
+
   #wait for event
   wait_time = 0
   while True:
@@ -53,7 +53,7 @@ def send_cmd(local, sevent, minion_name, cmd, param, has_param=True):
     if ret is None:
        print "ret none"
        wait_time+=1
-       if (wait_time > 10000):
+       if (wait_time > 1000):
          return ("", "")
        else:
          continue
@@ -72,10 +72,10 @@ def send_cmd(local, sevent, minion_name, cmd, param, has_param=True):
 
 def send_cmd_no_param(local, sevent, minion_name, cmd):
   return send_cmd(local, sevent, minion_name, cmd, '', False)
-  
+
 '''
 set minion ip
-'''      
+'''
 def set_minion_ip(local, sevent, minion_name, ip, mask, gateway, name='Local'):
   if(gateway.strip()==''):
     gateway = 'none'
@@ -84,7 +84,7 @@ def set_minion_ip(local, sevent, minion_name, ip, mask, gateway, name='Local'):
   param = 'netsh interface ip set address name="'+name+'" source=static addr='+ ip +' mask='+mask+' ' + gateway
   ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', param)
   return (ret_code, ret_data)
-  
+
 def set_minion_dns(local, sevent, minion_name, dns, name='Local'):
   if(dns.strip()==''):
     dns = 'none'
@@ -96,7 +96,7 @@ def minion_write_client_config_file(local, sevent, minion_name, file_name, line_
   cmd = ""
   for line in line_list:
     if(cmd != ""):
-    	cmd += ' & '
+        cmd += ' & '
     else:
       cmd += '( '
     cmd += ('echo ' + line)
@@ -119,7 +119,7 @@ def minion_process_exist(local, sevent, minion_name, exe_name):
       return 0
     else:
      return 1
-   
+
 def minion_kill_process(local, sevent, minion_name, process_name):
   if (0 == minion_process_exist(local, sevent, minion_name, process_name)):
       return 0
@@ -134,7 +134,7 @@ def minion_kill_process(local, sevent, minion_name, process_name):
     else:
       print 'error:kill process '+ process_name + 'failed!!'
   return -1
-  
+
 def minion_start_process(local, sevent, minion_name, process_folder, exe_name):
   cmd = 'START /normal /D "' + process_folder + '" ' + exe_name
   ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', cmd)
@@ -142,14 +142,14 @@ def minion_start_process(local, sevent, minion_name, process_folder, exe_name):
     print 'error:kill process '+ process_folder + ' failed,code-'+str(ret_code) + ',data-' + ret_data
     return -1
   return 0
-  
+
 def minion_windows_cmd(local, sevent, minion_name, cmd):
   ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', cmd)
   if(ret_code != 0):
     print 'clean files '+ process_name + ' failed,code-'+str(ret_code) + ',data-' + ret_data
     return -1
   return 0
-      
+
 def main_exec(salt_path, config_file, minion_name):
   opts = salt.config.client_config(salt_path+'/etc/salt/master')
   local = salt.client.LocalClient(salt_path+'/etc/salt/master')
@@ -173,14 +173,14 @@ def main_exec(salt_path, config_file, minion_name):
   else:
     print 'get mac error: code-'+str(ret_code) + ',data-' + ret_data
     return -1
-  
+
   config = ConfigParser.ConfigParser()
-  config.read(config_file) 
-  
+  config.read(config_file)
+
   ip_from_ini = configSectionMap(config, mac)['ip']
   mask_from_ini = configSectionMap(config, mac)['mask']
   gateway_from_ini = configSectionMap(config, mac)['gateway']
-  
+
   #set ip
   '''
   ret_code, ret_data = send_cmd_no_param(local, sevent, minion_name, 'network.ip_addrs')
@@ -194,20 +194,20 @@ def main_exec(salt_path, config_file, minion_name):
     print 'get ip error: code-'+str(ret_code) + ',data-' + ret_data
     return -1
   '''
-  
+
   #set minion ip
   ret_code, ret_data = set_minion_ip(local, sevent, minion_name, ip_from_ini, mask_from_ini, gateway_from_ini)
   if (ret_code != 0):
     print 'set ip error: code-'+str(ret_code) + ',data-' + ret_data
     return -1
-    
+
   #dns
   dns_from_ini = configSectionMap(config, mac)['dns']
   ret_code, ret_data = set_minion_dns(local, sevent, minion_name, dns_from_ini)
   if (ret_code != 0):
     print 'set ip error: code-'+str(ret_code) + ',data-' + ret_data
     return -1
-    
+
   #hostname
   hostname_from_ini = configSectionMap(config, mac)['hostname']
   ret_code, ret_data = send_cmd(local, sevent, minion_name, 'cmd.run', 'hostname')
@@ -225,16 +225,16 @@ def main_exec(salt_path, config_file, minion_name):
   else:
     print 'get hostname error: code-'+str(ret_code) + ',data-' + ret_data
     return -1
-    
+
   if (0 != minion_kill_process(local, sevent, minion_name, 'Guardian.exe')):
     print 'kill Guardian.exe faild!!!'
     return -1
-    
+
   #kill process
   if (0 != minion_kill_process(local, sevent, minion_name, 'Client.exe')):
     print 'kill Client.exe faild!!!'
     return -1
-   
+
   hongt_app_path = 'C:\\hongt\\'
   if(minion_name[0:3] == 'old'):
     new_old = 'MainOld'
@@ -243,28 +243,28 @@ def main_exec(salt_path, config_file, minion_name):
   server_ip = configSectionMap(config, new_old)['host']
   server_port = configSectionMap(config, new_old)['port']
   to_run_app_count = configSectionMap(config, mac)['to_run_app_count']
-  
+
   #clean files
   #minion_windows_cmd(local, sevent, minion_name, 'del /S C:/test/client.run')
   #minion_windows_cmd(local, sevent, minion_name, 'del /S C:/test/*.reg')
-  
+
   #write client config file
   minion_client_config = ['[Home]', 'AutoRun=1', '[Main]', 'Host='+server_ip, 'Port='+server_port, 'Bind='+ip_from_ini,
   '[Login]', 'Enable=0', 'Manually=0', 'DomainName=', 'UserName=', 'Lock=0', '[File]', 'BackUp=0',
   'Tactics=0', 'FilePath=', 'FileSize=', 'FileExt=', 'FilePathEx']
   minion_write_client_config_file(local, sevent, minion_name, hongt_app_path+'WebConfig.ini', minion_client_config)
-  
+
   client_folders = ['Client01', 'Client02', 'Client03', 'Client04', 'Client05', 'Client06', 'Client07', 'Client08', 'Client09', 'Client10']
   count = 0
   for folder in client_folders:
     client_folder = hongt_app_path + folder
     del_client_run_file_cmd = 'del /f /s /q ' + client_folder + '\\Client.run'
     minion_windows_cmd(local, sevent, minion_name, del_client_run_file_cmd)
-    
+
     #copy config file
     minion_windows_cmd(local, sevent, minion_name, 'copy /y ' + hongt_app_path + 'WebConfig.ini ' + client_folder + '\\WebConfig.ini')
-    
-    #time.sleep(1)
+
+    time.sleep(1)
     #start process
     minion_start_process(local, sevent, minion_name, client_folder, 'Client.exe')
     count+=1
@@ -274,7 +274,7 @@ def main_exec(salt_path, config_file, minion_name):
       break;
   return 0
 
-if __name__=="__main__": 
+if __name__=="__main__":
   count = 0
   if(len(sys.argv)>=2):
     minion_name = str(sys.argv[1])
@@ -282,7 +282,7 @@ if __name__=="__main__":
     if(len(minion_name)>6 and minion_name[0:6] == 'minion'):
       print minion_name + ' to abord!!'
       sys.exit()
-    
+
     while True:
       if(0 == main_exec('', '/srv/salt/base/python/config.ini', minion_name)):
         break
