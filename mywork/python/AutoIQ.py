@@ -264,7 +264,7 @@ def main_exec(salt_path, config_file, minion_name):
     #copy config file
     minion_windows_cmd(local, sevent, minion_name, 'copy /y ' + hongt_app_path + 'WebConfig.ini ' + client_folder + '\\WebConfig.ini')
     
-    time.sleep(1)
+    #time.sleep(1)
     #start process
     minion_start_process(local, sevent, minion_name, client_folder, 'Client.exe')
     count+=1
